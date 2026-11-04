@@ -219,175 +219,833 @@
   </footer>
 
   <script>
-    // ── DATA ──
-    const DEFAULT_PROJECTS = [
-      {id:1,title:"Ethics Learn Platform",desc:"A full-featured educational platform with video courses, quizzes, and progress tracking built with React and Firebase.",category:"web",tags:["React","Firebase","Tailwind"],image:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80",github:"https://github.com",demo:"https://ethicslearn.com",date:"Dec 2024",featured:true},
-      {id:2,title:"Cyberpunk Portfolio UI",desc:"Award-winning portfolio design with particle animations, glassmorphism cards, and cinematic cyberpunk aesthetics.",category:"design",tags:["HTML","CSS","JavaScript"],image:"https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80",github:"https://github.com",demo:"#",date:"Nov 2024",featured:true},
-      {id:3,title:"AI Content Generator",desc:"Python-powered AI tool that generates blog posts, social media captions, and marketing copy using OpenAI API.",category:"ai",tags:["Python","OpenAI","FastAPI"],image:"https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80",github:"https://github.com",demo:"#",date:"Oct 2024",featured:false},
-      {id:4,title:"YouTube Channel Branding",desc:"Complete brand identity and video editing package for Ethics Learn YouTube channel — thumbnails, intros, and motion graphics.",category:"video",tags:["Premiere Pro","After Effects","Photoshop"],image:"https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&q=80",github:"#",demo:"https://youtube.com/@EthicsLearn",date:"Sep 2024",featured:false},
-      {id:5,title:"React Dashboard UI",desc:"Modern analytics dashboard with real-time charts, dark mode, and responsive layout built with React and Recharts.",category:"web",tags:["React","Recharts","Tailwind"],image:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",github:"https://github.com",demo:"#",date:"Aug 2024",featured:false},
-      {id:6,title:"Python Web Scraper",desc:"Automated web scraping tool with data extraction, CSV export, and scheduled runs using Python, BeautifulSoup, and Selenium.",category:"ai",tags:["Python","Selenium","BeautifulSoup"],image:"https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80",github:"https://github.com",demo:"#",date:"Jul 2024",featured:false},
-      {id:7,title:"E-Commerce Landing Page",desc:"High-converting product landing page with animated sections, testimonials, and integrated payment flow.",category:"web",tags:["HTML","CSS","JavaScript"],image:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80",github:"https://github.com",demo:"#",date:"Jun 2024",featured:false},
-      {id:8,title:"Motion Graphics Reel",desc:"Compilation of motion graphics and visual effects created for various YouTube channels and social media campaigns.",category:"video",tags:["After Effects","Cinema 4D","DaVinci"],image:"https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&q=80",github:"#",demo:"https://youtube.com",date:"May 2024",featured:false},
-      {id:9,title:"Chatbot with GPT-4",desc:"Intelligent customer support chatbot powered by GPT-4 with context memory, multi-turn conversations, and admin dashboard.",category:"ai",tags:["Python","GPT-4","React"],image:"https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=600&q=80",github:"https://github.com",demo:"#",date:"Apr 2024",featured:false}
-    ];
+  // ==========================================
+  // PROJECT DATA
+  // ==========================================
 
-    function getProjects() {
-      try { const s = localStorage.getItem('sj_projects'); return s ? JSON.parse(s) : DEFAULT_PROJECTS; }
-      catch { return DEFAULT_PROJECTS; }
+  const DEFAULT_PROJECTS = [
+    {
+      id: 1,
+      title: "Trip AI",
+      category: "ai",
+      featured: false,
+      date: "Idea & Prototype",
+      status: "Idea and prototype phase",
+      desc: "Trip AI is an early-stage travel planning concept. The project is currently in the idea and prototype phase, with the core experience being explored and shaped.",
+      details: "Trip AI is being explored as an AI-assisted travel companion. The current focus is validating the idea, shaping the user journey, and developing an initial prototype before expanding the feature set.",
+      highlights: [
+        "Early product concept",
+        "Prototype exploration",
+        "Travel-planning experience under development"
+      ],
+      tags: ["AI", "Travel", "Prototype"],
+      image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=85",
+      github: "#",
+      demo: "#"
+    },
+
+    {
+      id: 2,
+      title: "Lunaflow",
+      category: "web",
+      featured: true,
+      date: "App Completed · Business Development",
+      status: "App completed · Business development ongoing",
+      desc: "Lunaflow is a cross-platform app project. The app build is complete, and the focus has moved to business development and growing its reach.",
+      details: "Lunaflow has both a web experience and a mobile app build. The product development milestone is complete; current work is focused on business development and taking the product forward.",
+      highlights: [
+        "Mobile app build completed",
+        "Web app available",
+        "Business development ongoing"
+      ],
+      tags: ["Mobile App", "Web App", "Product"],
+      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9?w=1200&q=85",
+      github: "#",
+      demo: "https://lunaflow-sjcodes.lovable.app/",
+      mobile: "https://drive.google.com/file/d/1RHbr1VQP2OZ7bnGNIzfhQYTL7jqXIlfv/view?usp=drive_link"
+    },
+
+    {
+      id: 3,
+      title: "ShadowOps",
+      category: "ai",
+      featured: true,
+      date: "Core Completed · Iterating",
+      status: "Core completed · Modification stage",
+      desc: "ShadowOps is a cybersecurity operations platform concept focused on helping teams inspect security posture, understand findings, and work through remediation workflows. Its core is completed and being refined.",
+      details: "ShadowOps is being developed as an AI-assisted cybersecurity operations platform. The current project milestone is that the core experience is complete; ongoing work is focused on modifications, refinement, and improving the platform.",
+      highlights: [
+        "Core platform experience completed",
+        "Security findings and remediation workflow direction",
+        "Currently in refinement and modification"
+      ],
+      tags: ["Cybersecurity", "AI", "Security Operations"],
+      image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=85",
+      github: "#",
+      demo: "https://shadow-ops-v1.vercel.app/"
+    },
+
+    {
+      id: 4,
+      title: "Ethics Learn AI Hub",
+      category: "ai",
+      featured: false,
+      date: "In Development",
+      status: "Development phase · Active work",
+      desc: "Ethics Learn AI Hub is an educational AI project currently in active development, with work underway on its learning experience and platform capabilities.",
+      details: "Ethics Learn AI Hub is part of the Ethics Learn ecosystem. The project is currently in its development phase, with implementation and improvements continuing. More public product details will be added as features are finalized.",
+      highlights: [
+        "Active development",
+        "Education-focused project",
+        "Features being built and refined"
+      ],
+      tags: ["EdTech", "AI", "Learning"],
+      image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=85",
+      github: "#",
+      demo: "#"
+    },
+
+    {
+      id: 5,
+      title: "QuoteForge AI",
+      category: "ai",
+      featured: true,
+      date: "Development · UI Enhancement",
+      status: "Development and UI enhancement ongoing",
+      desc: "QuoteForge AI is an AI-powered quotation tool. The live app is available, while development and user-interface enhancements continue.",
+      details: "QuoteForge AI is being built to streamline quotation creation. The current web app is available to explore. The project remains under active development, with ongoing work on functionality and UI polish.",
+      highlights: [
+        "Live web app available",
+        "Quotation workflow product",
+        "Development and UI improvements ongoing"
+      ],
+      tags: ["AI", "Web App", "Productivity"],
+      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&q=85",
+      github: "#",
+      demo: "https://sjcodes-quatation.vercel.app/"
+    },
+
+    {
+      id: 6,
+      title: "Palm AI",
+      category: "ai",
+      featured: false,
+      date: "Prototype",
+      status: "Prototype phase",
+      desc: "Palm AI is an AI product currently at the prototype stage. The platform is available to preview while the concept and experience continue to evolve.",
+      details: "Palm AI is currently in its prototype phase. The platform link is available for an early look; capabilities and product scope may continue to change as development progresses.",
+      highlights: [
+        "Prototype-stage product",
+        "Platform preview available",
+        "Concept and experience evolving"
+      ],
+      tags: ["AI", "Prototype", "Web Platform"],
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=85",
+      github: "#",
+      demo: "https://palmai.ai.studio/"
+    }
+  ];
+
+
+  // ==========================================
+  // PROJECT STORAGE
+  // ==========================================
+
+  function getProjects() {
+    try {
+      const saved = localStorage.getItem("sj_projects_v2");
+
+      return saved
+        ? JSON.parse(saved)
+        : DEFAULT_PROJECTS;
+
+    } catch (error) {
+      console.error("Unable to load projects:", error);
+      return DEFAULT_PROJECTS;
+    }
+  }
+
+
+  // ==========================================
+  // APPLICATION STATE
+  // ==========================================
+
+  let allProjects = getProjects();
+  let filtered = [...allProjects];
+
+  let currentFilter = "all";
+  let currentSearch = "";
+  let currentSort = "newest";
+  let currentPage = 1;
+
+  const PER_PAGE = 9;
+
+
+  // ==========================================
+  // CUSTOM CURSOR
+  // ==========================================
+
+  const cursor = document.getElementById("cursor");
+  const trail = document.getElementById("cursor-trail");
+
+  if (cursor && trail && window.matchMedia("(pointer: fine)").matches) {
+
+    let mx = 0;
+    let my = 0;
+    let tx = 0;
+    let ty = 0;
+
+    document.addEventListener("mousemove", event => {
+      mx = event.clientX;
+      my = event.clientY;
+
+      cursor.style.left = mx + "px";
+      cursor.style.top = my + "px";
+    });
+
+    function animateTrail() {
+      tx += (mx - tx) * 0.12;
+      ty += (my - ty) * 0.12;
+
+      trail.style.left = tx + "px";
+      trail.style.top = ty + "px";
+
+      requestAnimationFrame(animateTrail);
     }
 
-    // ── STATE ──
-    let allProjects = getProjects();
-    let filtered = [...allProjects];
-    let currentFilter = 'all';
-    let currentSearch = '';
-    let currentSort = 'newest';
-    let currentPage = 1;
-    const PER_PAGE = 9;
+    animateTrail();
+  }
 
-    // ── CURSOR ──
-    const cursor = document.getElementById('cursor');
-    const trail = document.getElementById('cursor-trail');
-    let mx=0,my=0,tx=0,ty=0;
-    document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
-    (function animTrail(){tx+=(mx-tx)*.12;ty+=(my-ty)*.12;trail.style.left=tx+'px';trail.style.top=ty+'px';requestAnimationFrame(animTrail)})();
 
-    // ── FILTER & SEARCH ──
-    document.getElementById('searchInput').addEventListener('input', e => {
-      currentSearch = e.target.value.toLowerCase();
-      currentPage = 1;
-      applyFilters();
+  // ==========================================
+  // SEARCH
+  // ==========================================
+
+  document.getElementById("searchInput").addEventListener("input", event => {
+
+    currentSearch = event.target.value.toLowerCase().trim();
+
+    currentPage = 1;
+
+    applyFilters();
+
+  });
+
+
+  // ==========================================
+  // CATEGORY FILTERS
+  // ==========================================
+
+  document.getElementById("filterTabs").addEventListener("click", event => {
+
+    const button = event.target.closest(".filter-btn");
+
+    if (!button) return;
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.classList.remove("active");
     });
 
-    document.getElementById('filterTabs').addEventListener('click', e => {
-      const btn = e.target.closest('.filter-btn');
-      if (!btn) return;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.getAttribute('data-filter');
-      currentPage = 1;
-      applyFilters();
+    button.classList.add("active");
+
+    currentFilter = button.dataset.filter;
+
+    currentPage = 1;
+
+    applyFilters();
+
+  });
+
+
+  // ==========================================
+  // SORTING
+  // ==========================================
+
+  document.getElementById("sortSelect").addEventListener("change", event => {
+
+    currentSort = event.target.value;
+
+    currentPage = 1;
+
+    applyFilters();
+
+  });
+
+
+  // ==========================================
+  // FILTER AND SORT LOGIC
+  // ==========================================
+
+  function applyFilters() {
+
+    allProjects = getProjects();
+
+    filtered = allProjects.filter(project => {
+
+      const matchesFilter =
+        currentFilter === "all" ||
+        project.category === currentFilter;
+
+      const searchableText = [
+        project.title,
+        project.desc,
+        project.status,
+        ...(project.tags || [])
+      ].join(" ").toLowerCase();
+
+      const matchesSearch =
+        !currentSearch ||
+        searchableText.includes(currentSearch);
+
+      return matchesFilter && matchesSearch;
+
     });
 
-    document.getElementById('sortSelect').addEventListener('change', e => {
-      currentSort = e.target.value;
-      currentPage = 1;
-      applyFilters();
-    });
 
-    function applyFilters() {
-      allProjects = getProjects();
-      filtered = allProjects.filter(p => {
-        const mf = currentFilter === 'all' || p.category === currentFilter;
-        const ms = !currentSearch || p.title.toLowerCase().includes(currentSearch) || p.desc.toLowerCase().includes(currentSearch) || p.tags.some(t => t.toLowerCase().includes(currentSearch));
-        return mf && ms;
-      });
+    // Sorting
 
-      // Sort
-      if (currentSort === 'featured') filtered.sort((a,b) => (b.featured?1:0)-(a.featured?1:0));
-      else if (currentSort === 'az') filtered.sort((a,b) => a.title.localeCompare(b.title));
-      else if (currentSort === 'oldest') filtered.sort((a,b) => a.id - b.id);
-      else filtered.sort((a,b) => b.id - a.id);
+    if (currentSort === "featured") {
 
-      renderGrid();
-      renderPagination();
-      document.getElementById('resultsCount').textContent = filtered.length;
+      filtered.sort((a, b) =>
+        Number(b.featured) - Number(a.featured)
+      );
+
+    } else if (currentSort === "az") {
+
+      filtered.sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+
+    } else if (currentSort === "oldest") {
+
+      filtered.sort((a, b) => a.id - b.id);
+
+    } else {
+
+      filtered.sort((a, b) => b.id - a.id);
+
     }
 
-    function renderGrid() {
-      const grid = document.getElementById('projectsGrid');
-      const start = (currentPage - 1) * PER_PAGE;
-      const page = filtered.slice(start, start + PER_PAGE);
 
-      if (page.length === 0) {
-        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No projects found</div><div class="empty-text">// Try adjusting your search or filter criteria</div></div>`;
-        return;
-      }
+    renderGrid();
+    renderPagination();
 
-      grid.innerHTML = page.map(p => `
-        <div class="project-card ${p.featured?'featured':''}" data-id="${p.id}">
-          <div class="project-thumb">
-            <img src="${p.image}" alt="${p.title}" loading="lazy"/>
-            <div class="project-thumb-overlay"></div>
-            ${p.featured?'<span class="project-featured-badge">⭐ Featured</span>':''}
+    document.getElementById("resultsCount").textContent =
+      filtered.length;
+
+  }
+
+
+  // ==========================================
+  // PROJECT CARD RENDERING
+  // ==========================================
+
+  function renderGrid() {
+
+    const grid = document.getElementById("projectsGrid");
+
+    const start = (currentPage - 1) * PER_PAGE;
+
+    const page = filtered.slice(start, start + PER_PAGE);
+
+
+    if (page.length === 0) {
+
+      grid.innerHTML = `
+        <div class="empty-state">
+
+          <div class="empty-icon">🔍</div>
+
+          <div class="empty-title">
+            No projects found
           </div>
-          <div class="project-body">
-            <div class="project-tags">${p.tags.map(t=>`<span class="project-tag">${t}</span>`).join('')}</div>
-            <h3 class="project-title">${p.title}</h3>
-            <p class="project-desc">${p.desc}</p>
-            <div class="project-footer">
-              <span class="project-date">${p.date}</span>
-              <div class="project-links">
-                ${p.github!=='#'?`<a href="${p.github}" target="_blank" class="project-link github" onclick="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>GitHub</a>`:''}
-                ${p.demo!=='#'?`<a href="${p.demo}" target="_blank" class="project-link demo" onclick="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Live</a>`:''}
-              </div>
-            </div>
+
+          <div class="empty-text">
+            // Try adjusting your search or filter criteria
           </div>
-        </div>
-      `).join('');
 
-      // Animate in
-      grid.querySelectorAll('.project-card').forEach((card, i) => {
-        setTimeout(() => card.classList.add('visible'), i * 60);
-        card.addEventListener('click', e => {
-          if (e.target.closest('.project-link')) return;
-          openModal(parseInt(card.getAttribute('data-id')));
-        });
-      });
-    }
-
-    function renderPagination() {
-      const total = Math.ceil(filtered.length / PER_PAGE);
-      const pg = document.getElementById('pagination');
-      if (total <= 1) { pg.innerHTML = ''; return; }
-
-      let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
-      for (let i = 1; i <= total; i++) {
-        if (i === 1 || i === total || Math.abs(i - currentPage) <= 1) {
-          html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-        } else if (Math.abs(i - currentPage) === 2) {
-          html += `<span style="color:var(--text-muted);padding:0 4px">…</span>`;
-        }
-      }
-      html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
-      pg.innerHTML = html;
-    }
-
-    function goPage(n) {
-      const total = Math.ceil(filtered.length / PER_PAGE);
-      if (n < 1 || n > total) return;
-      currentPage = n;
-      renderGrid();
-      renderPagination();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // ── MODAL ──
-    function openModal(id) {
-      const p = getProjects().find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('modalContent').innerHTML = `
-        <div style="margin-bottom:24px"><img src="${p.image}" alt="${p.title}" style="width:100%;border-radius:12px;aspect-ratio:16/9;object-fit:cover"/></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${p.tags.map(t=>`<span class="project-tag">${t}</span>`).join('')}${p.featured?'<span class="project-featured-badge" style="position:static">⭐ Featured</span>':''}</div>
-        <h2 style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;margin-bottom:12px;color:var(--text-primary)">${p.title}</h2>
-        <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:24px;font-size:.95rem">${p.desc}</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          ${p.github!=='#'?`<a href="${p.github}" target="_blank" class="btn btn-secondary"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>View on GitHub</a>`:''}
-          ${p.demo!=='#'?`<a href="${p.demo}" target="_blank" class="btn btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Live Demo</a>`:''}
         </div>
       `;
-      document.getElementById('projectModal').classList.add('active');
-      document.body.style.overflow = 'hidden';
+
+      return;
     }
 
-    document.getElementById('modalClose').addEventListener('click', closeModal);
-    document.getElementById('projectModal').addEventListener('click', e => { if (e.target === document.getElementById('projectModal')) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-    function closeModal() { document.getElementById('projectModal').classList.remove('active'); document.body.style.overflow = ''; }
 
-    // ── INIT ──
-    applyFilters();
-  </script>
+    grid.innerHTML = page.map(project => `
+
+      <div
+        class="project-card ${project.featured ? "featured" : ""}"
+        data-id="${project.id}"
+      >
+
+        <div class="project-thumb">
+
+          <img
+            src="${project.image}"
+            alt="${project.title}"
+            loading="lazy"
+          />
+
+          <div class="project-thumb-overlay"></div>
+
+          ${
+            project.featured
+              ? `<span class="project-featured-badge">⭐ Featured</span>`
+              : ""
+          }
+
+        </div>
+
+
+        <div class="project-body">
+
+          <div class="project-tags">
+
+            ${project.tags.map(tag => `
+              <span class="project-tag">${tag}</span>
+            `).join("")}
+
+          </div>
+
+
+          <h3 class="project-title">
+            ${project.title}
+          </h3>
+
+
+          <div class="project-status">
+            ${project.status || "Project"}
+          </div>
+
+
+          <p class="project-desc">
+            ${project.desc}
+          </p>
+
+
+          <div class="project-footer">
+
+            <span class="project-date">
+              ${project.date}
+            </span>
+
+
+            <div class="project-links">
+
+              ${
+                project.github && project.github !== "#"
+                  ? `
+                    <a
+                      href="${project.github}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="project-link github"
+                      onclick="event.stopPropagation()"
+                    >
+                      GitHub
+                    </a>
+                  `
+                  : ""
+              }
+
+
+              ${
+                project.demo && project.demo !== "#"
+                  ? `
+                    <a
+                      href="${project.demo}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="project-link demo"
+                      onclick="event.stopPropagation()"
+                    >
+                      ↗ Live
+                    </a>
+                  `
+                  : ""
+              }
+
+
+              ${
+                project.mobile
+                  ? `
+                    <a
+                      href="${project.mobile}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="project-link github"
+                      onclick="event.stopPropagation()"
+                    >
+                      Mobile
+                    </a>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+
+    // Card animation and modal click
+
+    grid.querySelectorAll(".project-card").forEach((card, index) => {
+
+      setTimeout(() => {
+        card.classList.add("visible");
+      }, index * 60);
+
+
+      card.addEventListener("click", event => {
+
+        if (event.target.closest(".project-link")) return;
+
+        const projectId = Number(card.dataset.id);
+
+        openModal(projectId);
+
+      });
+
+    });
+
+  }
+
+
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  function renderPagination() {
+
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+
+    const pagination = document.getElementById("pagination");
+
+
+    if (totalPages <= 1) {
+
+      pagination.innerHTML = "";
+
+      return;
+
+    }
+
+
+    let html = `
+
+      <button
+        class="page-btn"
+        onclick="goPage(${currentPage - 1})"
+        ${currentPage === 1 ? "disabled" : ""}
+      >
+        ‹
+      </button>
+
+    `;
+
+
+    for (let i = 1; i <= totalPages; i++) {
+
+      if (
+        i === 1 ||
+        i === totalPages ||
+        Math.abs(i - currentPage) <= 1
+      ) {
+
+        html += `
+
+          <button
+            class="page-btn ${i === currentPage ? "active" : ""}"
+            onclick="goPage(${i})"
+          >
+            ${i}
+          </button>
+
+        `;
+
+      } else if (Math.abs(i - currentPage) === 2) {
+
+        html += `
+          <span style="color:var(--text-muted);padding:0 4px">
+            …
+          </span>
+        `;
+
+      }
+
+    }
+
+
+    html += `
+
+      <button
+        class="page-btn"
+        onclick="goPage(${currentPage + 1})"
+        ${currentPage === totalPages ? "disabled" : ""}
+      >
+        ›
+      </button>
+
+    `;
+
+
+    pagination.innerHTML = html;
+
+  }
+
+
+  function goPage(pageNumber) {
+
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+
+    currentPage = pageNumber;
+
+    renderGrid();
+    renderPagination();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  // ==========================================
+  // PROJECT DETAILS MODAL
+  // ==========================================
+
+  function openModal(id) {
+
+    const project = getProjects().find(item => item.id === id);
+
+    if (!project) return;
+
+
+    document.getElementById("modalContent").innerHTML = `
+
+      <div style="margin-bottom:24px">
+
+        <img
+          src="${project.image}"
+          alt="${project.title}"
+          style="
+            width:100%;
+            border-radius:12px;
+            aspect-ratio:16/9;
+            object-fit:cover;
+          "
+        />
+
+      </div>
+
+
+      <div style="
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+      ">
+
+        ${project.tags.map(tag => `
+          <span class="project-tag">${tag}</span>
+        `).join("")}
+
+
+        ${
+          project.featured
+            ? `
+              <span
+                class="project-featured-badge"
+                style="position:static"
+              >
+                ⭐ Featured
+              </span>
+            `
+            : ""
+        }
+
+      </div>
+
+
+      <h2 style="
+        font-family:var(--font-display);
+        font-size:1.6rem;
+        font-weight:800;
+        margin-bottom:12px;
+        color:var(--text-primary);
+      ">
+        ${project.title}
+      </h2>
+
+
+      <div class="project-status" style="margin-bottom:16px">
+        ${project.status || "Project"}
+      </div>
+
+
+      <p style="
+        color:var(--text-secondary);
+        line-height:1.8;
+        margin-bottom:14px;
+        font-size:.95rem;
+      ">
+        ${project.desc}
+      </p>
+
+
+      <p style="
+        color:var(--text-secondary);
+        line-height:1.8;
+        margin-bottom:20px;
+        font-size:.9rem;
+      ">
+        ${project.details || project.desc}
+      </p>
+
+
+      ${
+        project.highlights && project.highlights.length
+          ? `
+            <h3 style="
+              font-family:var(--font-display);
+              font-size:1rem;
+              margin-bottom:10px;
+            ">
+              Project Highlights
+            </h3>
+
+            <ul style="
+              color:var(--text-secondary);
+              padding-left:20px;
+              line-height:1.9;
+              margin-bottom:24px;
+            ">
+
+              ${project.highlights.map(item => `
+                <li>${item}</li>
+              `).join("")}
+
+            </ul>
+          `
+          : ""
+      }
+
+
+      <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+      ">
+
+
+        ${
+          project.github && project.github !== "#"
+            ? `
+              <a
+                href="${project.github}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-secondary"
+              >
+                View on GitHub
+              </a>
+            `
+            : ""
+        }
+
+
+        ${
+          project.demo && project.demo !== "#"
+            ? `
+              <a
+                href="${project.demo}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-primary"
+              >
+                ↗ Live Demo
+              </a>
+            `
+            : ""
+        }
+
+
+        ${
+          project.mobile
+            ? `
+              <a
+                href="${project.mobile}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-secondary"
+              >
+                Mobile App
+              </a>
+            `
+            : ""
+        }
+
+      </div>
+
+    `;
+
+
+    document.getElementById("projectModal").classList.add("active");
+
+    document.body.style.overflow = "hidden";
+
+  }
+
+
+  // ==========================================
+  // MODAL CLOSE EVENTS
+  // ==========================================
+
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+
+
+  document.getElementById("projectModal").addEventListener("click", event => {
+
+    if (event.target.id === "projectModal") {
+      closeModal();
+    }
+
+  });
+
+
+  document.addEventListener("keydown", event => {
+
+    if (event.key === "Escape") {
+      closeModal();
+    }
+
+  });
+
+
+  function closeModal() {
+
+    document.getElementById("projectModal").classList.remove("active");
+
+    document.body.style.overflow = "";
+
+  }
+
+
+  // ==========================================
+  // INITIALIZE PROJECT PAGE
+  // ==========================================
+
+  applyFilters();
+
+</script>
 </body>
 </html>
