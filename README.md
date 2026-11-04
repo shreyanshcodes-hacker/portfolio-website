@@ -49,23 +49,6 @@ portfolio-website/
 
 Additional assets and pages may be added as the portfolio evolves.
 
-## 🚀 Run Locally
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/shreyanshcodes-hacker/portfolio-website.git
-```
-
-2. Open the project folder:
-
-```bash
-cd portfolio-website
-```
-
-3. Open `index.html` in your browser.
-
-You can also use the **Live Server** extension in Visual Studio Code for local development.
 
 ## 📌 Featured Projects
 
