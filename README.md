@@ -44,7 +44,6 @@ portfolio-website/
 │
 └── pages/
     ├── projects.html
-    └── admin.html
 ```
 
 Additional assets and pages may be added as the portfolio evolves.
