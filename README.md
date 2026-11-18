@@ -101,3 +101,6 @@ Content is now stored in Supabase and managed from `/admin/`.
 - `supabase-config.js` – project URL + public key
 - `cms.js` – loads projects, updates and skills; sends contact messages
 - `admin/index.html` – dashboard: messages (real time), updates, projects, skills
+
+### LinkedIn sharing
+See `SOCIAL_SETUP.md` (functions in `supabase/functions`, SQL in `supabase/schema-social.sql`).

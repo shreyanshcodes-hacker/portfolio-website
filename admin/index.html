@@ -53,6 +53,16 @@ dialog h3{margin:0 0 4px}
 .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--accent);padding:10px 16px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
 #toast.show{opacity:1;transform:none}
+
+.muted{color:var(--mute);font-size:13px}
+#share{width:min(760px,95vw)}
+.prev img,.prev canvas{width:100%;border-radius:8px;border:1px solid var(--line);display:block;margin:12px 0}
+.scard{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0;background:#0e1520}
+.scard .shead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.scard .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.scard .err{color:var(--danger);font-size:13px;margin-top:8px}
+.scard .confirm{background:#1a2330;border:1px solid var(--accent);border-radius:6px;padding:10px 12px;margin-top:12px}
+.scard a{color:var(--accent)}
 @media(max-width:720px){#app{grid-template-columns:1fr}nav{position:static;height:auto;display:flex;flex-wrap:wrap;gap:4px}nav h2{width:100%}nav .out{position:static;width:auto}main{padding:16px}}
 @media(prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
@@ -75,12 +85,14 @@ dialog h3{margin:0 0 4px}
     <button data-tab="posts">Blog posts</button>
     <button data-tab="projects">Projects</button>
     <button data-tab="skills">Skills</button>
+    <button data-tab="social">LinkedIn sharing</button>
     <button class="out" id="logout">Sign out</button>
   </nav>
   <main id="view"></main>
 </div>
 
 <dialog id="dlg"><form method="dialog" id="frm"></form></dialog>
+<dialog id="share"><div id="shareBody"></div></dialog>
 <div id="toast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
@@ -175,7 +187,7 @@ document.querySelectorAll("nav [data-tab]").forEach(b => b.onclick = () => go(b.
 function go(t) {
   tab = t;
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
-  t === "messages" ? renderMessages() : renderList(t);
+  t === "messages" ? renderMessages() : t === "social" ? renderSocial() : renderList(t);
 }
 
 /* ---------- generic CRUD ---------- */
@@ -188,8 +200,9 @@ async function renderList(name) {
   if (!data.length) return $("#list").innerHTML = `<div class="empty">No ${cfg.label.toLowerCase()} yet. Create your first ${cfg.single}.</div>`;
   $("#list").innerHTML = data.map(r => `<div class="row"><div class="grow"><div class="t">${esc(cfg.title(r))}</div><div class="s">${esc(cfg.sub(r))}</div></div>
     ${r.published === true ? '<span class="tag ok">live</span>' : r.published === false ? '<span class="tag">draft</span>' : ""}
-    <button class="btn" data-e="${r.id}">Edit</button><button class="btn danger" data-d="${r.id}">Delete</button></div>`).join("");
+    ${(name === "posts" || name === "projects") && r.published ? `<button class="btn" data-s="${r.id}">Share</button>` : ""}<button class="btn" data-e="${r.id}">Edit</button><button class="btn danger" data-d="${r.id}">Delete</button></div>`).join("");
   v.querySelectorAll("[data-e]").forEach(b => b.onclick = () => openForm(name, data.find(r => r.id === b.dataset.e)));
+  v.querySelectorAll("[data-s]").forEach(b => b.onclick = () => openShare(name === "posts" ? "post" : "project", data.find(r => r.id === b.dataset.s), true));
   v.querySelectorAll("[data-d]").forEach(b => b.onclick = async () => {
     if (!confirm("Delete this " + cfg.single + "? This cannot be undone.")) return;
     const { error } = await sb.from(name).delete().eq("id", b.dataset.d);
@@ -225,10 +238,12 @@ function openForm(name, row) {
     }
     if (cfg.fields.some(x => x.k === "slug") && !out.slug) out.slug = slugify(out.title) + (name === "posts" ? "-" + Date.now().toString(36) : "");
     if (name === "posts" && out.published && !out.published_at) out.published_at = new Date().toISOString();
-    const q = isNew ? sb.from(name).insert(out) : sb.from(name).update(out).eq("id", row.id);
-    const { error } = await q;
+    const q = isNew ? sb.from(name).insert(out).select().single() : sb.from(name).update(out).eq("id", row.id).select().single();
+    const { data: saved, error } = await q;
     if (error) return toast(error.message);
     $("#dlg").close(); toast("Saved"); renderList(name);
+    const live = saved.published && (name === "projects" || (name === "posts" && new Date(saved.published_at) <= new Date()));
+    if (live && (name === "projects" || name === "posts")) openShare(name === "posts" ? "post" : "project", saved, false);
   };
   $("#dlg").showModal();
 }
@@ -268,7 +283,251 @@ function subscribe() {
   }).subscribe();
 }
 
-boot();
+/* =====================================================================
+   SOCIAL SHARING  (LinkedIn + X)
+   Nothing is ever posted automatically: drafts are generated, you edit
+   them, and each platform needs its own explicit confirmation.
+   ===================================================================== */
+const PLAT = { linkedin: { name: "LinkedIn" } };
+let SH = null;
+
+async function callFn(name, body) {
+  const { data, error } = await sb.functions.invoke(name, { body });
+  if (error) {
+    const j = await (error.context?.json?.() ?? Promise.resolve({})).catch(() => ({}));
+    const e = new Error(j.error || error.message);
+    e.duplicate = j.duplicate; e.mediaFailed = j.media_failed;
+    throw e;
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+/* ----- image: a lightly edited 1200x627 version of the item's own image ----- */
+function loadImg(src) {
+  return new Promise((res, rej) => {
+    const im = new Image(); im.crossOrigin = "anonymous";
+    im.onload = () => res(im); im.onerror = () => rej(new Error("image load failed"));
+    im.src = new URL(src, location.origin).href;
+  });
+}
+function wrapLines(ctx, text, maxW, maxLines) {
+  const words = text.split(/\s+/), lines = []; let cur = "";
+  for (const w of words) {
+    const t = cur ? cur + " " + w : w;
+    if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "…"; }
+  return lines;
+}
+async function buildShareImage(src, title) {
+  const W = 1200, H = 627, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+  let drew = false;
+  if (src) {
+    try {
+      const im = await loadImg(src);
+      const sc = Math.max(W / im.width, H / im.height) * 1.06;       // slight zoom/crop
+      const w = im.width * sc, h = im.height * sc;
+      ctx.filter = "saturate(1.12) contrast(1.05) brightness(0.95)"; // slight colour edit
+      ctx.drawImage(im, (W - w) / 2 + 12, (H - h) / 2, w, h);
+      ctx.filter = "none"; drew = true;
+    } catch { /* fall through to generated background */ }
+  }
+  if (!drew) {
+    const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0a0e14"); g.addColorStop(1, "#12304a");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  const g2 = ctx.createLinearGradient(0, H * 0.35, 0, H); g2.addColorStop(0, "rgba(10,14,20,0)"); g2.addColorStop(1, "rgba(10,14,20,.92)");
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#00e5ff"; ctx.fillRect(48, H - 150, 6, 96);
+  ctx.fillStyle = "#fff"; ctx.font = "700 46px system-ui, sans-serif";
+  wrapLines(ctx, title, W - 160, 2).forEach((l, i) => ctx.fillText(l, 72, H - 112 + i * 56));
+  ctx.fillStyle = "#9fb3c8"; ctx.font = "500 24px system-ui, sans-serif";
+  ctx.fillText(location.host, 72, H - 28);
+  const blob = await new Promise(r => c.toBlob(r, "image/png"));
+  return { blob, url: URL.createObjectURL(blob) };
+}
+
+/* ----- flow ----- */
+async function openShare(type, item, direct) {
+  SH = { type, item, drafts: {}, state: { linkedin: "draft" }, err: {}, result: {}, variation: 0,
+         img: { linkedin: true }, link: { linkedin: true }, conn: {}, blob: null, imageUrl: null };
+  const label = type === "project" ? "project" : "update";
+  $("#shareBody").innerHTML = `<h3>Also want to share?</h3>
+    <p>“${esc(item.title)}” ${direct ? "is live on your portfolio." : "is now live on your portfolio."}
+    Also want to post it on LinkedIn?</p>
+    <p class="muted">The ${label} will be rewritten for LinkedIn with a new title, context and description, with a lightly edited image.
+    You review and edit the post and approve it before anything is published.</p>
+    <div class="actions"><button class="btn" id="shNo">Not now</button><button class="btn primary" id="shYes">Yes, prepare drafts</button></div>`;
+  $("#shNo").onclick = () => $("#share").close();
+  $("#shYes").onclick = prepareShare;
+  if (!$("#share").open) $("#share").showModal();
+}
+
+async function prepareShare() {
+  $("#shareBody").innerHTML = `<h3>Preparing drafts…</h3><p class="muted">Writing the posts and preparing the image.</p>`;
+  try {
+    const [d, st, im] = await Promise.all([
+      callFn("social-draft", { type: SH.type, id: SH.item.id }),
+      sb.from("social_status").select("*"),
+      buildShareImage(SH.type === "project" ? SH.item.image_url : SH.item.cover_url, SH.item.title),
+    ]);
+    SH.drafts = { linkedin: d.linkedin }; SH.note = d.note || "";
+    (st.data || []).forEach(r => SH.conn[r.platform] = r);
+    SH.blob = im.blob; SH.blobUrl = im.url;
+    renderShare();
+  } catch (e) {
+    $("#shareBody").innerHTML = `<h3>Could not prepare drafts</h3><p class="err" style="color:var(--danger)">${esc(e.message)}</p>
+      <p class="muted">Check that the social functions are deployed (see SOCIAL_SETUP.md).</p>
+      <div class="actions"><button class="btn" id="shNo">Close</button><button class="btn primary" id="shRetry">Try again</button></div>`;
+    $("#shNo").onclick = () => $("#share").close(); $("#shRetry").onclick = prepareShare;
+  }
+}
+
+function cardHTML(p) {
+  const st = SH.state[p], conn = SH.conn[p], ok = conn?.connected, name = PLAT[p].name;
+  const done = st === "done", locked = st === "posting" || done;
+  const exp = conn?.expires_at && new Date(conn.expires_at) < new Date(Date.now() + 7 * 864e5) ? ` · expires ${new Date(conn.expires_at).toLocaleDateString()}` : "";
+  let body;
+  if (st === "skipped") body = `<div class="bar"><span class="muted">Skipped. Nothing will be posted to ${name}.</span><button class="btn" data-act="undo" data-p="${p}">Undo</button></div>`;
+  else body = `
+    <textarea data-t="${p}" rows="10" ${locked ? "disabled" : ""}>${esc(SH.drafts[p])}</textarea>
+    <div class="muted" data-cnt="${p}"></div>
+    <label class="chk"><input type="checkbox" data-img="${p}" ${SH.img[p] ? "checked" : ""} ${locked ? "disabled" : ""}> Attach the edited image</label>
+    <label class="chk"><input type="checkbox" data-link="${p}" ${SH.link[p] ? "checked" : ""} ${locked ? "disabled" : ""}> Include a link to my portfolio</label>
+    ${SH.err[p] ? `<div class="err">${esc(SH.err[p])}</div>` : ""}
+    ${done ? `<div class="bar"><span class="tag ok">Posted</span><a href="${esc(SH.result[p].url)}" target="_blank" rel="noopener">View on ${name}</a></div>`
+      : st === "confirm" ? `<div class="confirm"><b>Post to ${name} now${conn?.account_name ? " as " + esc(conn.account_name) : ""}?</b><div class="muted">This publishes immediately and is public.</div>
+          <div class="bar"><button class="btn primary" data-act="post" data-p="${p}">Yes, post to ${name}</button><button class="btn" data-act="cancel" data-p="${p}">Cancel</button></div></div>`
+      : st === "posting" ? `<div class="bar"><span class="muted">Posting to ${name}…</span></div>`
+      : `<div class="bar"><button class="btn primary" data-act="ask" data-p="${p}" ${ok ? "" : "disabled"}>Approve &amp; post to ${name}</button>
+          <button class="btn" data-act="regen" data-p="${p}">Rewrite</button><button class="btn" data-act="skip" data-p="${p}">Skip ${name}</button>
+          ${ok ? "" : `<span class="muted">Connect ${name} first in the Social sharing tab.</span>`}</div>`}`;
+  return `<section class="scard" data-card="${p}"><div class="shead"><b>${name}</b>
+    <span class="tag ${ok ? "ok" : ""}">${ok ? "Connected as " + esc(conn.account_name || "") + exp : "Not connected"}</span></div>${body}</section>`;
+}
+
+function renderShare() {
+  $("#shareBody").innerHTML = `<h3>Review &amp; approve</h3>
+    <div class="muted">${SH.note ? esc(SH.note) + " " : ""}Edit anything you like. Nothing is posted until you confirm.</div>
+    <div class="prev"><img src="${SH.blobUrl}" alt="Edited share image preview"></div>
+    <div id="cards">${cardHTML("linkedin")}</div>
+    <div class="actions"><button class="btn" id="shDone">Close</button></div>`;
+  $("#shDone").onclick = () => $("#share").close();
+  updateCount("linkedin");
+}
+function renderCard(p) {
+  const el = $(`[data-card="${p}"]`); if (!el) return;
+  el.outerHTML = cardHTML(p); updateCount(p);
+}
+function updateCount(p) {
+  const c = $(`[data-cnt="${p}"]`); if (!c) return;
+  const n = SH.drafts.linkedin.length; c.textContent = n + " / 3000"; c.style.color = n > 3000 ? "var(--danger)" : "";
+}
+
+$("#shareBody").addEventListener("input", e => {
+  const p = e.target.dataset.t; if (p) { SH.drafts[p] = e.target.value; updateCount(p); }
+});
+$("#shareBody").addEventListener("change", e => {
+  if (e.target.dataset.img) SH.img[e.target.dataset.img] = e.target.checked;
+  if (e.target.dataset.link) { SH.link[e.target.dataset.link] = e.target.checked; updateCount(e.target.dataset.link); }
+});
+$("#shareBody").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const p = b.dataset.p, act = b.dataset.act;
+  SH.err[p] = "";
+  if (act === "ask") {
+    if (SH.drafts[p].length > 3000) { SH.err[p] = "Too long for LinkedIn (max 3000 characters)."; return renderCard(p); }
+    if (!SH.drafts[p].trim()) { SH.err[p] = "The post is empty."; return renderCard(p); }
+    SH.state[p] = "confirm"; renderCard(p);
+  } else if (act === "cancel") { SH.state[p] = "draft"; renderCard(p); }
+  else if (act === "skip") { SH.state[p] = "skipped"; renderCard(p); }
+  else if (act === "undo") { SH.state[p] = "draft"; renderCard(p); }
+  else if (act === "post") doPost(p, false);
+  else if (act === "regen") {
+    b.disabled = true; b.textContent = "Rewriting…";
+    try { const d = await callFn("social-draft", { type: SH.type, id: SH.item.id, variation: ++SH.variation, previous: SH.drafts[p] }); SH.drafts[p] = d[p]; }
+    catch (er) { SH.err[p] = er.message; }
+    renderCard(p);
+  }
+});
+
+async function uploadShareImage() {
+  if (SH.imageUrl) return SH.imageUrl;
+  const path = `${SH.type}/${SH.item.id}-${Date.now()}.png`;
+  const { error } = await sb.storage.from("social-images").upload(path, SH.blob, { contentType: "image/png" });
+  if (error) throw new Error("Image upload failed: " + error.message);
+  SH.imageUrl = sb.storage.from("social-images").getPublicUrl(path).data.publicUrl;
+  return SH.imageUrl;
+}
+
+async function doPost(p, allowRepost) {
+  SH.state[p] = "posting"; renderCard(p);
+  try {
+    const image_url = SH.img[p] && SH.blob ? await uploadShareImage() : null;
+    SH.result[p] = await callFn("social-publish", { platform: p, source_type: SH.type, source_id: SH.item.id,
+      text: SH.drafts[p], include_link: SH.link[p], image_url, allow_repost: allowRepost });
+    SH.state[p] = "done"; toast("Posted to " + PLAT[p].name);
+  } catch (e) {
+    SH.state[p] = "draft";
+    if (e.duplicate) {
+      if (confirm(`You already posted this to ${PLAT[p].name} on ${new Date(e.duplicate.at).toLocaleString()}. Post it again?`)) return doPost(p, true);
+    } else SH.err[p] = e.message + (e.mediaFailed ? " You can untick “Attach the edited image” and try again to post text only." : "");
+  }
+  renderCard(p);
+}
+
+/* ----- Social tab: connections + history ----- */
+async function renderSocial() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><h1>LinkedIn sharing</h1></div><div id="conn"></div>
+    <div class="head" style="margin-top:28px"><h1 style="font-size:16px">Recent shares</h1></div><div id="hist"></div>`;
+  const [st, hi] = await Promise.all([
+    sb.from("social_status").select("*"),
+    sb.from("social_shares").select("*").order("created_at", { ascending: false }).limit(20),
+  ]);
+  const by = Object.fromEntries((st.data || []).map(r => [r.platform, r]));
+  $("#conn").innerHTML = ["linkedin"].map(p => {
+    const r = by[p], ok = r?.connected;
+    const days = r?.expires_at ? Math.ceil((new Date(r.expires_at) - Date.now()) / 864e5) : null;
+    return `<div class="row"><div class="grow"><div class="t">${PLAT[p].name}</div>
+      <div class="s">${ok ? "Connected as " + esc(r.account_name || "") + (days !== null ? (days <= 0 ? " · expired" : ` · access expires in ${days} day${days === 1 ? "" : "s"}`) : "") : "Not connected"}</div></div>
+      <button class="btn primary" data-c="${p}">${ok ? "Reconnect" : "Connect"}</button>
+      ${ok ? `<button class="btn danger" data-x="${p}">Disconnect</button>` : ""}</div>`;
+  }).join("") + `<div class="muted" style="margin-top:8px">LinkedIn connections last 60 days; reconnect when it expires. Tokens are stored server-side and never reach the browser.</div>`;
+  $("#conn").querySelectorAll("[data-c]").forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { const r = await callFn("social-oauth/start", { platform: b.dataset.c }); location.href = r.url; }
+    catch (e) { toast(e.message); b.disabled = false; }
+  });
+  $("#conn").querySelectorAll("[data-x]").forEach(b => b.onclick = async () => {
+    if (!confirm("Disconnect " + PLAT[b.dataset.x].name + "?")) return;
+    try { await callFn("social-oauth/disconnect", { platform: b.dataset.x }); renderSocial(); } catch (e) { toast(e.message); }
+  });
+  const rows = hi.data || [];
+  $("#hist").innerHTML = rows.length ? rows.map(r => `<div class="row"><div class="grow"><div class="t">${PLAT[r.platform].name} · ${esc(r.text.slice(0, 80))}</div>
+    <div class="s">${new Date(r.created_at).toLocaleString()}${r.error ? " · " + esc(r.error) : ""}</div></div>
+    <span class="tag ${r.status === "posted" ? "ok" : ""}">${r.status}</span>
+    ${r.external_url ? `<a class="btn" href="${esc(r.external_url)}" target="_blank" rel="noopener">View</a>` : ""}</div>`).join("")
+    : `<div class="empty">Nothing shared yet.</div>`;
+}
+
+/* result of the OAuth redirect */
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get("connected") || q.get("social_error")) {
+    window.__afterBoot = () => {
+      go("social");
+      toast(q.get("connected") ? PLAT[q.get("connected")]?.name + " connected" : "Connection failed: " + q.get("social_error"));
+    };
+    history.replaceState(null, "", location.pathname);
+  }
+})();
+
+
+boot().then(() => window.__afterBoot && window.__afterBoot());
 </script>
 </body>
 </html>
