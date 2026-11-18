@@ -92,3 +92,12 @@ Project data is managed through JavaScript functions in `script.js`. Changes sav
 <p align="center">
   Built with passion, creativity, and code.
 </p>
+
+## 🗄️ CMS (Supabase)
+
+Content is now stored in Supabase and managed from `/admin/`.
+
+- `supabase-schema.sql` – run once in Supabase SQL Editor (tables, security, realtime, seed data)
+- `supabase-config.js` – project URL + public key
+- `cms.js` – loads projects, updates and skills; sends contact messages
+- `admin/index.html` – dashboard: messages (real time), updates, projects, skills

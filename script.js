@@ -125,7 +125,13 @@ const DEFAULT_BLOG = [
   }
 ];
 
+/* Content now comes from Supabase (see cms.js). Built-in defaults and
+   localStorage remain as an offline fallback. */
+const cmsReady = (window.CMS ? window.CMS.load() : Promise.resolve(false));
+
 function getProjects() {
+  const cms = window.CMS && window.CMS.projects('home');
+  if (cms) return cms;
   try {
     const stored = localStorage.getItem('sj_projects');
     return stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
@@ -133,6 +139,8 @@ function getProjects() {
 }
 
 function getBlog() {
+  const cms = window.CMS && window.CMS.blog();
+  if (cms) return cms;
   try {
     const stored = localStorage.getItem('sj_blog');
     return stored ? JSON.parse(stored) : DEFAULT_BLOG;
@@ -160,7 +168,9 @@ window.addEventListener('load', () => {
   }, 2200);
 });
 
-function initAll() {
+async function initAll() {
+  await cmsReady;
+  applyCmsSkills();
   initCursor();
   initNavbar();
   initParticles();
@@ -173,6 +183,45 @@ function initAll() {
   initContactForm();
   initVisitorCounter();
   initModal();
+}
+
+/* ── SKILLS FROM CMS ────────────────────────────────────────── */
+/* Updates the existing skill cards in place (keeps their icons and styling),
+   adds cards for new skills and removes cards deleted in the CMS. */
+function applyCmsSkills() {
+  const skills = window.CMS && window.CMS.skills();
+  const grid = document.querySelector('.skills-grid');
+  if (!skills || !grid) return;
+
+  const cards = Array.from(grid.querySelectorAll('.skill-card'));
+  if (!cards.length) return;
+  const template = cards[0].cloneNode(true);
+  const byName = new Map(cards.map(c => [
+    (c.querySelector('.skill-name')?.textContent || '').trim().toLowerCase(), c
+  ]));
+  const used = new Set();
+
+  skills.forEach((sk, i) => {
+    let card = byName.get(sk.name.trim().toLowerCase());
+    if (!card) {
+      card = template.cloneNode(true);
+      const icon = card.querySelector('.skill-icon');
+      if (icon) { icon.className = 'skill-icon'; icon.textContent = sk.icon || '⚡'; }
+      const fill = card.querySelector('.skill-fill');
+      if (fill) fill.style.width = '';
+      card.classList.remove('visible');
+    } else if (sk.icon) {
+      const icon = card.querySelector('.skill-icon');
+      if (icon) icon.textContent = sk.icon;
+    }
+    card.querySelector('.skill-name').textContent = sk.name;
+    card.querySelector('.skill-percent').textContent = sk.level + '%';
+    card.querySelector('.skill-fill').setAttribute('data-width', sk.level);
+    card.setAttribute('data-delay', i);
+    used.add(card);
+    grid.appendChild(card);            // applies the CMS sort order
+  });
+  cards.forEach(c => { if (!used.has(c)) c.remove(); });
 }
 
 /* ── CUSTOM CURSOR ──────────────────────────────────────────── */
@@ -630,18 +679,26 @@ function initBlog() {
 /* ── CONTACT FORM ───────────────────────────────────────────── */
 function initContactForm() {
   const form = document.getElementById('contactForm');
-  form?.addEventListener('submit', (e) => {
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
+    const original = btn.innerHTML;
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
-    setTimeout(() => {
+    const f = form.querySelectorAll('.form-input');   // name, email, subject, message
+    try {
+      await window.CMS.sendMessage({
+        name: f[0].value, email: f[1].value, subject: f[2].value, message: f[3].value
+      });
       showToast('✓ Message sent successfully!');
       form.reset();
-      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message`;
-      btn.disabled = false;
-    }, 1500);
+    } catch (err) {
+      console.error('Contact form error:', err);
+      showToast('✗ Could not send your message. Please try again.');
+    }
+    btn.innerHTML = original;
+    btn.disabled = false;
   });
 }
 

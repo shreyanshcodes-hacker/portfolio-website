@@ -218,7 +218,12 @@
     © 2024 Shreyansh Jaiswal · Powered by <span>Ethics Learn</span>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="/cms.js"></script>
   <script>
+  const cmsReady = (window.CMS ? window.CMS.load() : Promise.resolve(false));
+
   // ==========================================
   // PROJECT DATA
   // ==========================================
@@ -352,6 +357,8 @@
   // ==========================================
 
   function getProjects() {
+    const cms = window.CMS && window.CMS.projects('full');
+    if (cms) return cms;
     try {
       const saved = localStorage.getItem("sj_projects_v2");
 
@@ -1044,7 +1051,7 @@
   // INITIALIZE PROJECT PAGE
   // ==========================================
 
-  applyFilters();
+  cmsReady.then(applyFilters);
 
 </script>
 </body>

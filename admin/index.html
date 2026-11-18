@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Portfolio CMS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#111823;--line:#1f2a3a;--text:#dbe4f0;--mute:#7d8da3;--accent:#00e5ff;--danger:#ff5370;--ok:#3ddc97;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hidden{display:none!important}
+.btn{background:transparent;border:1px solid var(--line);padding:7px 14px;border-radius:6px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#001318;border-color:var(--accent);font-weight:600}
+.btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+input,select,textarea{width:100%;background:#0c121b;border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+textarea{resize:vertical;min-height:90px}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+label.chk{display:flex;gap:8px;align-items:center;color:var(--text)}
+label.chk input{width:auto}
+
+#login{max-width:360px;margin:12vh auto;padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+#login h1{margin:0 0 4px;font-size:20px}
+#msg{color:var(--danger);min-height:20px;font-size:13px;margin-top:10px}
+
+#app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+nav{border-right:1px solid var(--line);padding:18px 12px;background:var(--panel);position:sticky;top:0;height:100vh}
+nav h2{font-size:15px;margin:0 8px 18px}
+nav button{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:none;border:0;padding:9px 10px;border-radius:6px;cursor:pointer;color:var(--mute)}
+nav button.on{background:#16202e;color:var(--accent)}
+.badge{background:var(--accent);color:#001318;border-radius:10px;font-size:12px;padding:0 7px;font-weight:700}
+nav .out{position:absolute;bottom:18px;left:12px;right:12px;width:auto;border:1px solid var(--line)}
+main{padding:24px 28px;max-width:1000px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.head h1{font-size:20px;margin:0}
+.row{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.row .grow{flex:1;min-width:0}
+.row .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{color:var(--mute);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.unread{border-left:3px solid var(--accent)}
+.tag{font-size:12px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);color:var(--mute)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.empty{color:var(--mute);padding:40px 0;text-align:center}
+.msgbody{white-space:pre-wrap;margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:22px;width:min(640px,94vw);max-height:90vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+dialog h3{margin:0 0 4px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--accent);padding:10px 16px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+#toast.show{opacity:1;transform:none}
+@media(max-width:720px){#app{grid-template-columns:1fr}nav{position:static;height:auto;display:flex;flex-wrap:wrap;gap:4px}nav h2{width:100%}nav .out{position:static;width:auto}main{padding:16px}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <h1>Portfolio CMS</h1>
+  <div style="color:var(--mute);font-size:13px">Sign in to manage your content.</div>
+  <label for="em">Email</label><input id="em" type="email" autocomplete="username">
+  <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password">
+  <div id="msg" role="alert"></div>
+  <button class="btn primary" id="go" style="width:100%;margin-top:8px">Sign in</button>
+</section>
+
+<div id="app" class="hidden">
+  <nav>
+    <h2>Portfolio CMS</h2>
+    <button data-tab="messages">Messages <span id="unread" class="badge hidden">0</span></button>
+    <button data-tab="posts">Blog posts</button>
+    <button data-tab="projects">Projects</button>
+    <button data-tab="skills">Skills</button>
+    <button class="out" id="logout">Sign out</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<dialog id="dlg"><form method="dialog" id="frm"></form></dialog>
+<div id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script src="/supabase-config.js"></script>
+<script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const toLocal = iso => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2200); }
+
+/* ---------- entity config: add/remove fields here ---------- */
+const ENTITIES = {
+  posts: {
+    label: "Updates / blog", single: "update", order: ["published_at", false],
+    title: r => (r.icon || "") + " " + r.title,
+    sub: r => (r.published ? "Published " + new Date(r.published_at).toLocaleDateString() : "Draft") + " · " + r.type,
+    fields: [
+      { k: "title", l: "Title", t: "text", req: 1 },
+      { k: "icon", l: "Icon (emoji)", t: "text", def: "📝" },
+      { k: "type", l: "Type (sets the badge colour)", t: "select", opts: ["launch", "achievement", "learning", "project"] },
+      { k: "excerpt", l: "Text shown on the timeline", t: "textarea" },
+      { k: "content", l: "Full content (optional)", t: "textarea", rows: 10 },
+      { k: "slug", l: "Slug (optional)", t: "text", nul: 1 },
+      { k: "cover_url", l: "Cover image URL (optional)", t: "text", nul: 1 },
+      { k: "tags", l: "Tags (comma separated)", t: "tags" },
+      { k: "published_at", l: "Publish date (leave empty for now; a future date schedules it)", t: "datetime" },
+      { k: "published", l: "Published", t: "check", def: false },
+    ],
+  },
+  projects: {
+    label: "Projects", single: "project", order: ["sort_order", true],
+    title: r => r.title, sub: r => r.category + " · " + (r.status || "no status") + (r.published ? "" : " · hidden"),
+    fields: [
+      { k: "title", l: "Title", t: "text", req: 1 },
+      { k: "slug", l: "Slug", t: "text", nul: 1 },
+      { k: "category", l: "Category", t: "select", opts: ["web", "video", "ai", "design"] },
+      { k: "status", l: "Status (projects page)", t: "text" },
+      { k: "date_label", l: "Date label (small text on the card)", t: "text" },
+      { k: "description", l: "Short description", t: "textarea" },
+      { k: "details", l: "Details (project popup)", t: "textarea", rows: 6 },
+      { k: "highlights", l: "Highlights (one per line)", t: "lines" },
+      { k: "tags", l: "Tags (comma separated)", t: "tags" },
+      { k: "image_url", l: "Image URL or /assets/file.png", t: "text", nul: 1 },
+      { k: "live_url", l: "Live demo URL", t: "text", nul: 1 },
+      { k: "github_url", l: "GitHub URL", t: "text", nul: 1 },
+      { k: "mobile_url", l: "Mobile app URL", t: "text", nul: 1 },
+      { k: "home_description", l: "Homepage card description (optional override)", t: "textarea", nul: 1 },
+      { k: "home_image_url", l: "Homepage card image (optional override)", t: "text", nul: 1 },
+      { k: "home_date", l: "Homepage card date label (optional override)", t: "text", nul: 1 },
+      { k: "home_tags", l: "Homepage card tags (optional override)", t: "tags" },
+      { k: "sort_order", l: "Homepage order (lower = first)", t: "number" },
+      { k: "featured", l: "Featured", t: "check", def: false },
+      { k: "published", l: "Visible on site", t: "check", def: true },
+    ],
+  },
+  skills: {
+    label: "Skills", single: "skill", order: ["sort_order", true],
+    title: r => (r.icon || "") + " " + r.name, sub: r => r.level + "%",
+    fields: [
+      { k: "name", l: "Name (match an existing name to edit its card)", t: "text", req: 1 },
+      { k: "level", l: "Level (0-100)", t: "number" },
+      { k: "icon", l: "Icon emoji (empty keeps the current icon)", t: "text" },
+      { k: "sort_order", l: "Order (lower = first)", t: "number" },
+    ],
+  },
+};
+
+let tab = "messages", rt = null;
+
+/* ---------- auth ---------- */
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return showLogin();
+  const { data } = await sb.from("admin_users").select("user_id").maybeSingle();
+  if (!data) { await sb.auth.signOut(); return showLogin("This account is not an admin. Add it to admin_users (see schema.sql)."); }
+  $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
+  subscribe(); refreshUnread(); go(tab);
+}
+function showLogin(err) { $("#app").classList.add("hidden"); $("#login").classList.remove("hidden"); $("#msg").textContent = err || ""; }
+$("#go").onclick = async () => {
+  $("#msg").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#em").value, password: $("#pw").value });
+  if (error) $("#msg").textContent = error.message; else boot();
+};
+$("#pw").addEventListener("keydown", e => e.key === "Enter" && $("#go").click());
+$("#logout").onclick = async () => { if (rt) sb.removeChannel(rt); await sb.auth.signOut(); showLogin(); };
+
+/* ---------- navigation ---------- */
+document.querySelectorAll("nav [data-tab]").forEach(b => b.onclick = () => go(b.dataset.tab));
+function go(t) {
+  tab = t;
+  document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  t === "messages" ? renderMessages() : renderList(t);
+}
+
+/* ---------- generic CRUD ---------- */
+async function renderList(name) {
+  const cfg = ENTITIES[name], v = $("#view");
+  v.innerHTML = `<div class="head"><h1>${cfg.label}</h1><button class="btn primary" id="new">New ${cfg.single}</button></div><div id="list"></div>`;
+  $("#new").onclick = () => openForm(name);
+  const { data, error } = await sb.from(name).select("*").order(cfg.order[0], { ascending: cfg.order[1] });
+  if (error) return $("#list").innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data.length) return $("#list").innerHTML = `<div class="empty">No ${cfg.label.toLowerCase()} yet. Create your first ${cfg.single}.</div>`;
+  $("#list").innerHTML = data.map(r => `<div class="row"><div class="grow"><div class="t">${esc(cfg.title(r))}</div><div class="s">${esc(cfg.sub(r))}</div></div>
+    ${r.published === true ? '<span class="tag ok">live</span>' : r.published === false ? '<span class="tag">draft</span>' : ""}
+    <button class="btn" data-e="${r.id}">Edit</button><button class="btn danger" data-d="${r.id}">Delete</button></div>`).join("");
+  v.querySelectorAll("[data-e]").forEach(b => b.onclick = () => openForm(name, data.find(r => r.id === b.dataset.e)));
+  v.querySelectorAll("[data-d]").forEach(b => b.onclick = async () => {
+    if (!confirm("Delete this " + cfg.single + "? This cannot be undone.")) return;
+    const { error } = await sb.from(name).delete().eq("id", b.dataset.d);
+    error ? toast(error.message) : (toast("Deleted"), renderList(name));
+  });
+}
+
+function openForm(name, row) {
+  const cfg = ENTITIES[name], f = $("#frm"), isNew = !row; row = row || {};
+  f.innerHTML = `<h3>${isNew ? "New" : "Edit"} ${cfg.single}</h3>` + cfg.fields.map(x => {
+    const val = row[x.k]; let input;
+    if (x.t === "textarea") input = `<textarea name="${x.k}" rows="${x.rows || 4}">${esc(val)}</textarea>`;
+    else if (x.t === "select") input = `<select name="${x.k}">${x.opts.map(o => `<option ${o === val ? "selected" : ""}>${o}</option>`).join("")}</select>`;
+    else if (x.t === "check") return `<label class="chk"><input type="checkbox" name="${x.k}" ${(isNew ? x.def : val) ? "checked" : ""}> ${x.l}</label>`;
+    else if (x.t === "datetime") input = `<input name="${x.k}" type="datetime-local" value="${val ? toLocal(val) : ""}">`;
+    else if (x.t === "tags") input = `<input name="${x.k}" value="${esc((val || []).join(", "))}">`;
+    else if (x.t === "lines") input = `<textarea name="${x.k}" rows="4">${esc((val || []).join("\n"))}</textarea>`;
+    else input = `<input name="${x.k}" type="${x.t === "number" ? "number" : "text"}" value="${esc(val ?? (x.t === "number" ? 0 : (x.def ?? "")))}" ${x.req ? "required" : ""}>`;
+    return `<label>${x.l}</label>${input}`;
+  }).join("") + `<div class="actions"><button type="button" class="btn" id="cancel">Cancel</button><button type="submit" class="btn primary">Save ${cfg.single}</button></div>`;
+  $("#cancel").onclick = () => $("#dlg").close();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(f), out = {};
+    for (const x of cfg.fields) {
+      const v = fd.get(x.k);
+      if (x.t === "check") out[x.k] = fd.has(x.k);
+      else if (x.t === "number") out[x.k] = Number(v) || 0;
+      else if (x.t === "tags") out[x.k] = v.split(",").map(s => s.trim()).filter(Boolean);
+      else if (x.t === "lines") out[x.k] = v.split("\n").map(s => s.trim()).filter(Boolean);
+      else if (x.t === "datetime") out[x.k] = v ? new Date(v).toISOString() : null;
+      else out[x.k] = (x.nul && !v.trim()) ? null : v.trim();
+    }
+    if (cfg.fields.some(x => x.k === "slug") && !out.slug) out.slug = slugify(out.title) + (name === "posts" ? "-" + Date.now().toString(36) : "");
+    if (name === "posts" && out.published && !out.published_at) out.published_at = new Date().toISOString();
+    const q = isNew ? sb.from(name).insert(out) : sb.from(name).update(out).eq("id", row.id);
+    const { error } = await q;
+    if (error) return toast(error.message);
+    $("#dlg").close(); toast("Saved"); renderList(name);
+  };
+  $("#dlg").showModal();
+}
+
+/* ---------- messages (realtime) ---------- */
+async function renderMessages() {
+  const v = $("#view");
+  v.innerHTML = `<div class="head"><h1>Messages</h1><span class="tag ok">live</span></div><div id="list"></div>`;
+  const { data, error } = await sb.from("messages").select("*").order("created_at", { ascending: false });
+  if (error) return $("#list").innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data.length) return $("#list").innerHTML = `<div class="empty">No messages yet. New ones appear here the moment they are sent.</div>`;
+  $("#list").innerHTML = data.map(m => `<div class="row${m.is_read ? '' : ' unread'}" style="flex-wrap:wrap" data-id="${m.id}">
+    <div class="grow"><div class="t">${esc(m.subject || "(no subject)")}</div>
+    <div class="s">${esc(m.name)} &lt;${esc(m.email)}&gt; · ${new Date(m.created_at).toLocaleString()}</div></div>
+    ${m.is_read ? "" : '<span class="badge">new</span>'}
+    <a class="btn" href="mailto:${esc(m.email)}?subject=${encodeURIComponent("Re: " + (m.subject || ""))}">Reply</a>
+    <button class="btn" data-r="${m.id}">${m.is_read ? "Mark unread" : "Mark read"}</button>
+    <button class="btn danger" data-d="${m.id}">Delete</button>
+    <div class="msgbody" style="width:100%">${esc(m.message)}</div></div>`).join("");
+  v.querySelectorAll("[data-r]").forEach(b => b.onclick = async () => {
+    const m = data.find(x => x.id === b.dataset.r);
+    await sb.from("messages").update({ is_read: !m.is_read }).eq("id", m.id);
+  });
+  v.querySelectorAll("[data-d]").forEach(b => b.onclick = async () => {
+    if (confirm("Delete this message?")) await sb.from("messages").delete().eq("id", b.dataset.d);
+  });
+}
+async function refreshUnread() {
+  const { count } = await sb.from("messages").select("*", { count: "exact", head: true }).eq("is_read", false);
+  const b = $("#unread"); b.textContent = count || 0; b.classList.toggle("hidden", !count);
+}
+function subscribe() {
+  if (rt) sb.removeChannel(rt);
+  rt = sb.channel("inbox").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
+    if (p.eventType === "INSERT") toast("New message from " + p.new.name);
+    refreshUnread(); if (tab === "messages") renderMessages();
+  }).subscribe();
+}
+
+boot();
+</script>
+</body>
+</html>
